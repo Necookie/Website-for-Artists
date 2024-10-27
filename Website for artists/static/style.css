@@ -1,0 +1,79 @@
+/* General Styles */
+body {
+    font-family: 'Garamond', serif; /* Gothic-like font */
+    margin: 0;
+    padding: 0;
+    background-color: #0e0e0e; /* Dark background */
+    color: #e0e0e0; /* Light text for contrast */
+}
+
+h1 {
+    text-align: center;
+    font-weight: bold;
+    color: #ffcc00; /* Yellow headings */
+    margin-top: 20px;
+}
+
+/* Card Container */
+.card-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Card Styles */
+.card {
+    background-color: #222; /* Dark card background */
+    border: 1px solid #444; /* Slightly lighter border */
+    border-radius: 10px;
+    margin: 15px;
+    padding: 20px;
+    width: 300px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Soft shadow */
+    text-align: center;
+    transition: transform 0.2s; /* Add scaling on hover */
+}
+
+.card:hover {
+    transform: scale(1.05); /* Scale effect on hover */
+}
+
+.card img {
+    width: 100%;
+    height: 200px; /* Set a fixed height */
+    object-fit: cover; /* Maintain aspect ratio while covering */
+    border-radius: 8px; /* Round image corners */
+}
+
+.card h2 {
+    font-size: 1.5rem;
+    color: #ffcc00; /* Yellow for card titles */
+}
+
+.card p {
+    font-size: 1rem;
+    color: #ccc; /* Light gray for text */
+}
+
+/* Form Styles */
+form {
+    display: flex;
+    flex-direction: column;
+    max-width: 400px;
+    margin: auto;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #ff5f57; /* Bright red */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s; /* Smooth hover effect */
+}
+
+button:hover {
+    background-color: #ff4136; /* Lighter red on hover */
+}

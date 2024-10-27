@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='logreg.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="icon" href="../static/dhekode-logo-primary-blue.png" type="image/png"> <!-- Favicon -->
+    <title>Login</title>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container main">
+        <div class="row">
+            <!-- Picture on the right side for login -->
+            <div class="col-md-6 right-image">
+                <img src="{{ url_for('static', filename='itto.jpg') }}" alt="">
+                <div class="text">
+                    <p>Welcome back! <i>- Necookie</i></p>
+                </div>
+            </div>
+
+            <div class="col-md-6 left">
+                <div class="input-box">
+                   <header>Log In</header>
+                   <!-- Flash messages -->
+                   {% with messages = get_flashed_messages(with_categories=true) %}
+                       {% if messages %}
+                           {% for category, message in messages %}
+                               <div class="alert alert-{{ category }}">{{ message }}</div>
+                           {% endfor %}
+                       {% endif %}
+                   {% endwith %}
+                   <!-- Form starts here -->
+                   <form action="{{ url_for('login') }}" method="POST">
+                    <div class="input-field">
+                        <input type="email" name="email" class="input" id="email" required autocomplete="off">
+                        <label for="email">Email</label> 
+                    </div> 
+                    <div class="input-field">
+                        <input type="password" name="password" class="input" id="pass" required>
+                        <label for="pass">Password</label>
+                    </div> 
+                    <div class="input-field">
+                        <input type="submit" class="submit" value="Log In">
+                    </div> 
+                </form>
+                   <div class="signin">
+                    <span>Don't have an account? <a href="{{ url_for('register') }}">Sign up here</a></span>
+                   </div>
+                </div>  
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

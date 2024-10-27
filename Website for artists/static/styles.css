@@ -1,0 +1,38 @@
+body {
+    background-color: #eaeaea; /* Light gray background */
+}
+
+.profile-section {
+    background-color: #cce7ff; /* Lighter blue for the profile section */
+    border-radius: .5rem .5rem 0 0;
+}
+
+.card {
+    background-color: #fff; /* White background for the card */
+    border: 1px solid #ddd; /* Light border for the card */
+}
+
+.card-body {
+    background-color: #f7f9fa; /* Light gray for card body */
+}
+
+.navbar {
+    background-color: #343a40; /* Dark background for the navbar */
+}
+
+.nav-link {
+    color: #ffffff; /* White text for nav links */
+}
+
+.nav-link:hover {
+    color: #adb5bd; /* Light gray on hover */
+}
+
+.btn-primary {
+    background-color: #007bff; /* Primary button color */
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
