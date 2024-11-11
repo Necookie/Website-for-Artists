@@ -1,14 +1,33 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, redirect, url_for, request, session, flash
+from flask_sqlalchemy import SQLAlchemy
 import os
 import mysql.connector
 from werkzeug.utils import secure_filename
 import secrets
+from functools import wraps
+from sqlalchemy.orm import Session
 
 # Generate a random secret key
-secret_key = secrets.token_hex(16)
-
+secret_key = os.getenv('SECRET_KEY')
 app = Flask(__name__)
 app.secret_key = secret_key
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/ecommerce_db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['USE_TSL'] = True
+app.config['USE_SSL'] = False
+db = SQLAlchemy(app)
+
+class Information(db.Model):
+    __tablename__ = 'information'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50))
+    email = db.Column(db.String(100))
+    password = db.Column(db.String(100))  # Password stored in plain text
+    bio = db.Column(db.String(255))
+    profile_picture = db.Column(db.String(255))
+    role = db.Column(db.String(50))
+    followers = db.Column(db.Integer)
+    rating = db.Column(db.Float)
 
 # MySQL connection setup
 def get_db_connection():
@@ -70,12 +89,15 @@ def add_item():
 def submit_form():
     name = request.form['name']
     email = request.form['email']
-    password = request.form['password']
+    password = request.form['password']  # Storing password in plain text
+
+    # Default role for new users
+    role = 'guest'  # Set the default role to guest
 
     conn = get_db_connection()
     cursor = conn.cursor()
-    sql = "INSERT INTO information (name, email, password) VALUES (%s, %s, %s)"
-    values = (name, email, password)
+    sql = "INSERT INTO information (name, email, password, role) VALUES (%s, %s, %s, %s)"
+    values = (name, email, password, role)  # Directly use the password
 
     cursor.execute(sql, values)
     conn.commit()
@@ -90,19 +112,32 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
 
+        print(f"Attempting to log in with email: {email} and password: {password}")
+
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM information WHERE email = %s AND password = %s", (email, password))
-        user = cursor.fetchone()
+        cursor.execute("SELECT * FROM information WHERE email = %s", (email,))
+        user = cursor.fetchone()    
         cursor.close()
         conn.close()
 
         if user:
-            session['email'] = email
-            flash('Login successful!', 'success')
-            return redirect(url_for('art_gallery'))
+            print(f"User found: {user}")  # Debug message
+            # Assuming the password is at index 3 (check the correct index)
+            print(user)
+            if user[4] == password:  # Check password directly
+                
+                print(password)
+                session['email'] = email
+                session['role'] = user[7]  # Assuming role is the fifth column in your table
+                flash('Login successful!', 'success')
+                return redirect(url_for('art_gallery'))
+            else:
+                print("Password does not match.")  # Debug message
         else:
-            flash('Invalid email or password', 'danger')
+            print("User not found.")  # Debug message
+        
+        flash('Invalid email or password', 'danger')
 
     return render_template('login.html')
 
@@ -121,8 +156,52 @@ def art_gallery():
 
 @app.route('/profile')
 def profile():
-    # Render profile page (you may want to create profile.html)
-    return render_template('profile.html')
+    user_id = session.get('email')
+    if not user_id:
+        return redirect(url_for('login'))
+
+    # Fetch the user with db.session instead of creating a new session
+    user = db.session.query(Information).filter_by(email=user_id).first()
+    if user is None:
+        return "User not found", 404
+
+    return render_template('profile.html', user=user)
+
+
+@app.route('/update_profile', methods=['POST'])
+def update_profile():
+    if 'email' not in session:
+        flash('Please log in to update your profile.', 'danger')
+        return redirect(url_for('login'))
+
+    # Retrieve form data
+    name = request.form['name']
+    bio = request.form['bio']
+    user_id = session.get('user_id')  # Assume you've stored `user_id` in session during login
+
+    # Handle profile image upload
+    file = request.files['profile_image']
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        profile_image = filename
+    else:
+        profile_image = None
+
+    # Update profile in database
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if profile_image:
+        cursor.execute("UPDATE profiles SET name = %s, bio = %s, profile_image = %s WHERE user_id = %s",
+                       (name, bio, profile_image, user_id))
+    else:
+        cursor.execute("UPDATE profiles SET name = %s, bio = %s WHERE user_id = %s", (name, bio, user_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    flash('Profile updated successfully!', 'success')
+    return redirect(url_for('profile'))
 
 @app.route('/settings')
 def settings():
@@ -132,8 +211,20 @@ def settings():
 @app.route('/logout')
 def logout():
     session.pop('email', None)  # Remove the email from the session
+    session.pop('role', None)  # Remove the role from the session
     flash('You have been logged out.', 'success')
     return redirect(url_for('index'))
+
+def role_required(role):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'role' not in session or session['role'] != role:
+                flash('You do not have permission to access this page.', 'danger')
+                return redirect(url_for('index'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)
